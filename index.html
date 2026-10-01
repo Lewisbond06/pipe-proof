@@ -75,6 +75,15 @@
     <button id="makeRecord" class="primary">Create test record</button>
   </section>
 
+  <!-- 3b. Review PDF before saving -->
+  <section id="screenReview" class="screen">
+    <p class="hint">Check the record. Nothing is saved until you confirm.</p>
+    <iframe id="pdfFrame" title="PDF preview"></iframe>
+    <button id="openFull" class="ghost">Open PDF full screen</button>
+    <button id="confirmSave" class="primary">Looks good - save record</button>
+    <button id="reviewBack" class="ghost">Back (edit signature / retake photo)</button>
+  </section>
+
   <!-- 4. Result -->
   <section id="screenResult" class="screen">
     <div class="ok">Test record created</div>

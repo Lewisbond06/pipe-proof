@@ -1,7 +1,7 @@
 (() => {
   const CFG = window.PIPEPROOF_CONFIG;
   const $ = id => document.getElementById(id);
-  const screens = ["Form", "Camera", "Sign", "Result", "History"];
+  const screens = ["Form", "Camera", "Sign", "Review", "Result", "History"];
 
   // ---- state ----
   let details = null;      // form values for the current test
@@ -13,6 +13,8 @@
   let shot = null;         // { dataUrl, takenAt, lat, lon, acc, address }
   let current = null;      // finished record
   let sigDirty = false;
+  let pending = null;      // record awaiting confirmation on the review screen
+  let reviewUrl = null;
 
   // ---- navigation ----
   function show(name) {
@@ -161,7 +163,16 @@
     const signature = pad.toDataURL("image/png");
     const meta = { ...details, repName, takenAt: shot.takenAt.toISOString(), lat: shot.lat, lon: shot.lon, acc: shot.acc, address: shot.address };
     const hash = await sha256(shot.dataUrl + JSON.stringify(meta));
-    current = { id: hash.slice(0, 12).toUpperCase(), hash, w: shot.w, h: shot.h, ...meta, photo: shot.dataUrl, signature, createdAt: Date.now() };
+    pending = { id: hash.slice(0, 12).toUpperCase(), hash, w: shot.w, h: shot.h, ...meta, photo: shot.dataUrl, signature, createdAt: Date.now() };
+    if (reviewUrl) URL.revokeObjectURL(reviewUrl);
+    reviewUrl = URL.createObjectURL(buildPdf(pending).output("blob"));
+    $("pdfFrame").src = reviewUrl;
+    show("Review");
+  };
+  $("openFull").onclick = () => window.open(reviewUrl, "_blank");
+  $("reviewBack").onclick = () => show("Sign");
+  $("confirmSave").onclick = async () => {
+    current = pending;
     await dbPut(current);
     $("resultId").textContent = `Record ${current.id}\nSHA-256 ${current.hash}`;
     $("resultImg").src = current.photo;
