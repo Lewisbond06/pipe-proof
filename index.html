@@ -27,17 +27,22 @@
       <label>Site / development <input name="site" required placeholder="e.g. Oakfield Meadows"></label>
       <label>Plot number <input name="plot" required placeholder="e.g. 42" inputmode="text"></label>
       <label>Plumber name <input name="plumber" required placeholder="Your name"></label>
-      <div class="row">
-        <label>Pipe brand <select name="brand" required></select></label>
-        <label>Size <select name="size" required></select></label>
-      </div>
-      <label>Pipe material <select name="material" required></select></label>
-      <label>Test type <select name="testType" required></select></label>
-      <div class="row">
-        <label>Test pressure <select name="pressure" required></select></label>
-        <label>Duration <select name="duration" required></select></label>
-      </div>
-      <label>Result <select name="result" required></select></label>
+      <fieldset>
+        <legend>First test</legend>
+        <label>Pipework <select name="pipe1" required></select></label>
+        <div class="row">
+          <label>Bar <input name="bar1" required inputmode="decimal" placeholder="e.g. 3"></label>
+          <label>Confirmed <select name="conf1" required></select></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Second test (optional)</legend>
+        <label>Pipework <select name="pipe2"></select></label>
+        <div class="row">
+          <label>Bar <input name="bar2" inputmode="decimal" placeholder="e.g. 3"></label>
+          <label>Confirmed <select name="conf2"></select></label>
+        </div>
+      </fieldset>
       <label>Notes (optional) <textarea name="notes" rows="2"></textarea></label>
       <button class="primary" type="submit">Next: take photo</button>
     </form>
@@ -60,7 +65,8 @@
   <!-- 3. Sign -->
   <section id="screenSign" class="screen">
     <img id="previewImg" alt="Stamped test photo">
-    <p class="hint">Sign below to confirm the test was carried out as stated.</p>
+    <label>Builder's representative name <input id="repName" required placeholder="Name"></label>
+    <p class="hint">Builder's representative signs below to confirm the test.</p>
     <canvas id="sigPad" width="600" height="220"></canvas>
     <div class="row">
       <button id="sigClear" class="ghost">Clear</button>

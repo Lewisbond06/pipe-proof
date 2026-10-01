@@ -28,9 +28,8 @@
     const sel = document.querySelector(`select[name=${name}]`);
     sel.innerHTML = items.map(i => `<option>${i}</option>`).join("");
   }
-  fill("brand", CFG.brands); fill("size", CFG.sizes); fill("material", CFG.materials);
-  fill("testType", CFG.testTypes); fill("pressure", CFG.pressures);
-  fill("duration", CFG.durations); fill("result", CFG.results);
+  fill("pipe1", CFG.pipework); fill("conf1", CFG.confirmed);
+  fill("pipe2", ["", ...CFG.pipework]); fill("conf2", ["", ...CFG.confirmed]);
 
   // remember plumber + site between tests
   const f = $("detailsForm");
@@ -42,6 +41,9 @@
   f.addEventListener("submit", e => {
     e.preventDefault();
     details = Object.fromEntries(new FormData(f).entries());
+    const second = [details.pipe2, details.bar2, details.conf2].filter(Boolean).length;
+    if (second && second < 3) { alert("Please complete all three second-test fields, or clear them."); return; }
+    details.hasSecond = second === 3;
     try { localStorage.setItem("pipeproof.last", JSON.stringify({ site: details.site, plumber: details.plumber })); } catch (e) {}
     show("Camera");
     startCamera();
@@ -92,10 +94,12 @@
   }
 
   const fmtTime = d => d.toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", timeZoneName: "short" });
+  const confTxt = v => (v === "Yes" ? "CONFIRMED" : "NOT CONFIRMED");
+  const testLine = (n, pipe, bar, conf) => `Test ${n}: ${pipe} ${bar} bar - ${confTxt(conf)}`;
   const stampLines = (d, p, a) => [
     `PLOT ${details.plot} - ${details.site}`,
-    `${details.brand} ${details.size} - ${details.testType}`,
-    `${details.pressure} / ${details.duration} - ${details.result.toUpperCase()}`,
+    testLine(1, details.pipe1, details.bar1, details.conf1),
+    details.hasSecond ? testLine(2, details.pipe2, details.bar2, details.conf2) : "",
     fmtTime(d),
     p ? `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)} (+/-${Math.round(p.acc)} m)` : "No GPS fix",
     a || ""
@@ -151,9 +155,11 @@
   }
 
   $("makeRecord").onclick = async () => {
-    if (!sigDirty) { alert("Please sign to confirm the test."); return; }
+    const repName = $("repName").value.trim();
+    if (!repName) { alert("Please enter the builder's representative name."); return; }
+    if (!sigDirty) { alert("The builder's representative needs to sign."); return; }
     const signature = pad.toDataURL("image/png");
-    const meta = { ...details, takenAt: shot.takenAt.toISOString(), lat: shot.lat, lon: shot.lon, acc: shot.acc, address: shot.address };
+    const meta = { ...details, repName, takenAt: shot.takenAt.toISOString(), lat: shot.lat, lon: shot.lon, acc: shot.acc, address: shot.address };
     const hash = await sha256(shot.dataUrl + JSON.stringify(meta));
     current = { id: hash.slice(0, 12).toUpperCase(), hash, w: shot.w, h: shot.h, ...meta, photo: shot.dataUrl, signature, createdAt: Date.now() };
     await dbPut(current);
@@ -180,15 +186,15 @@
       ["Date / time", fmtTime(new Date(r.takenAt))],
       ["Location", `${r.lat.toFixed(6)}, ${r.lon.toFixed(6)} (+/-${Math.round(r.acc)} m)`],
       ["Address", r.address || "-"],
-      ["Pipe", `${r.brand} - ${r.size} - ${r.material}`],
-      ["Test", r.testType], ["Pressure / duration", `${r.pressure} for ${r.duration}`],
-      ["Result", r.result.toUpperCase()], ["Notes", r.notes || "-"]
+      ["First test", `${r.pipe1} - ${r.bar1} bar - Confirmed: ${r.conf1}`],
+      ["Second test", r.hasSecond ? `${r.pipe2} - ${r.bar2} bar - Confirmed: ${r.conf2}` : "Not carried out"],
+      ["Notes", r.notes || "-"]
     ];
     let y = 34;
     rows.forEach(([k, v]) => {
       doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(100); doc.text(k.toUpperCase(), M, y);
       doc.setFont("helvetica", "normal"); doc.setFontSize(11);
-      if (k === "Result") doc.setTextColor(...(r.result === "Pass" ? [22, 163, 74] : [220, 38, 38])); else doc.setTextColor(30);
+      doc.setTextColor(30);
       const wrapped = doc.splitTextToSize(String(v), W - M * 2 - 45);
       doc.text(wrapped, M + 45, y);
       y += Math.max(7, wrapped.length * 5 + 2);
@@ -201,10 +207,10 @@
     doc.addImage(r.photo, "JPEG", M, y + 2, pw, ph);
     y += ph + 8;
     // signature
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(100); doc.text("SIGNED", M, y);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(100); doc.text("BUILDER'S REPRESENTATIVE", M, y);
     doc.addImage(r.signature, "PNG", M, y + 2, 55, 20);
     doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(120);
-    doc.text(r.plumber, M + 60, y + 14);
+    doc.text(r.repName, M + 60, y + 14);
     doc.text(`Integrity ID ${r.id} - SHA-256 ${r.hash}`.match(/.{1,100}/g), M, 290);
     return doc;
   }
@@ -225,7 +231,7 @@
   }
   $("sharePdf").onclick = () => sharePdf(current);
   $("downloadPhoto").onclick = async () => saveBlob(await (await fetch(current.photo)).blob(), `plot-${current.plot}_${current.id}.jpg`);
-  $("another").onclick = () => { f.elements.plot.value = ""; f.elements.notes.value = ""; show("Form"); };
+  $("another").onclick = () => { ["plot", "notes", "bar1", "bar2"].forEach(k => f.elements[k].value = ""); f.elements.pipe2.value = ""; f.elements.conf2.value = ""; $("repName").value = ""; show("Form"); };
 
   // ---- history (IndexedDB) ----
   let dbp;
@@ -245,8 +251,8 @@
     el.innerHTML = list.map(r => `
       <div class="card" data-id="${r.id}">
         <img src="${r.photo}" alt="">
-        <div class="meta"><b>Plot ${esc(r.plot)}</b> - <span class="${r.result === "Pass" ? "pass" : "fail"}">${r.result}</span><br>
-          ${esc(r.site)}<br>${esc(r.brand)} ${esc(r.size)} - ${esc(r.pressure)}<br>${fmtTime(new Date(r.takenAt))}</div>
+        <div class="meta"><b>Plot ${esc(r.plot)}</b><br>
+          ${esc(r.site)}<br>${esc(r.pipe1)} ${esc(r.bar1)} bar${r.hasSecond ? " + " + esc(r.pipe2) + " " + esc(r.bar2) + " bar" : ""}<br>${fmtTime(new Date(r.takenAt))}</div>
         <button>PDF</button>
       </div>`).join("");
     el.querySelectorAll(".card").forEach(c => c.querySelector("button").onclick = async () => {

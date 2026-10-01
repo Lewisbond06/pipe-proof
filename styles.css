@@ -33,3 +33,5 @@ video{width:100%;display:block;max-height:60vh;object-fit:cover}
 .card button{width:auto;margin:0;padding:8px 12px;font-size:13px}
 .pass{color:var(--ok)}.fail{color:var(--bad)}
 .empty{color:var(--muted);text-align:center;padding:40px 0}
+fieldset{border:1px solid var(--line);border-radius:12px;margin:0 0 12px;padding:12px 12px 0}
+legend{padding:0 6px;color:var(--accent);font-weight:600;font-size:14px}
