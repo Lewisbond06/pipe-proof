@@ -82,17 +82,20 @@
   async function reverseGeocode(lat, lon) {
     try {
       const ctl = new AbortController(); setTimeout(() => ctl.abort(), 5000);
-      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&lat=${lat}&lon=${lon}`, { signal: ctl.signal });
-      const j = await r.json();
-      if (j.display_name) addr = j.display_name.split(", ").slice(0, 4).join(", ");
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&lat=${lat}&lon=${lon}`, { signal: ctl.signal });
+      const j = await r.json(), a = j.address || {};
+      const street = [a.house_number, a.road].filter(Boolean).join(" ");
+      const place = a.town || a.village || a.city || a.suburb || "";
+      const clean = [street, place, a.postcode].filter(Boolean).join(", ");
+      if (clean) addr = clean; else if (j.display_name) addr = j.display_name.split(", ").slice(0, 4).join(", ");
     } catch (e) { /* offline: coordinates alone still stamp */ }
   }
 
   const fmtTime = d => d.toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", timeZoneName: "short" });
   const stampLines = (d, p, a) => [
     `PLOT ${details.plot} - ${details.site}`,
-    `${details.brand} ${details.size} ${details.material} - ${details.testType}`,
-    `${details.pressure} for ${details.duration} - ${details.result.toUpperCase()}`,
+    `${details.brand} ${details.size} - ${details.testType}`,
+    `${details.pressure} / ${details.duration} - ${details.result.toUpperCase()}`,
     fmtTime(d),
     p ? `${p.lat.toFixed(6)}, ${p.lon.toFixed(6)} (+/-${Math.round(p.acc)} m)` : "No GPS fix",
     a || ""
@@ -117,7 +120,9 @@
     ctx.drawImage(v, 0, 0, c.width, c.height);
     // burn the stamp into the pixels
     const lines = stampLines(takenAt, snap, snapAddr);
-    const fs = Math.max(14, Math.round(c.width / 48)), lh = Math.round(fs * 1.35), pad = Math.round(fs * 0.7);
+    ctx.font = "100px ui-monospace, Menlo, monospace";
+    const longest = Math.max(...lines.map(t => ctx.measureText(t).width));
+    const fs = Math.max(14, Math.min(Math.round(c.width / 26), Math.floor(100 * (c.width * 0.94) / longest))), lh = Math.round(fs * 1.35), pad = Math.round(fs * 0.7);
     const h = lines.length * lh + pad * 2;
     ctx.fillStyle = "rgba(0,0,0,.65)"; ctx.fillRect(0, c.height - h, c.width, h);
     ctx.fillStyle = "#fff"; ctx.font = `${fs}px ui-monospace, Menlo, monospace`; ctx.textBaseline = "top";
@@ -191,7 +196,7 @@
     // photo
     const ratio = r.h / r.w;
     let pw = W - M * 2, ph = pw * ratio;
-    const maxH = 297 - y - 62;
+    const maxH = 297 - y - 48;
     if (ph > maxH) { ph = maxH; pw = ph / ratio; }
     doc.addImage(r.photo, "JPEG", M, y + 2, pw, ph);
     y += ph + 8;

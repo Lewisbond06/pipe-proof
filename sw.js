@@ -1,5 +1,5 @@
 // Cache the app shell so it opens on site with no signal.
-const CACHE = "pipeproof-v1";
+const CACHE = "pipeproof-v2";
 const SHELL = ["./", "index.html", "styles.css", "app.js", "config.js", "icon.svg", "manifest.webmanifest", "vendor/jspdf.umd.min.js"];
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener("activate", e => e.waitUntil(
