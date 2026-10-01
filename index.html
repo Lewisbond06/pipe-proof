@@ -77,11 +77,13 @@
 
   <!-- 3b. Review PDF before saving -->
   <section id="screenReview" class="screen">
-    <p class="hint">Check the record. Nothing is saved until you confirm.</p>
-    <iframe id="pdfFrame" title="PDF preview"></iframe>
-    <button id="openFull" class="ghost">Open PDF full screen</button>
+    <p class="hint">Check the record. Nothing is saved until you confirm. Pinch to zoom.</p>
+    <div class="pagewrap"><canvas id="pdfCanvas"></canvas></div>
     <button id="confirmSave" class="primary">Looks good - save record</button>
-    <button id="reviewBack" class="ghost">Back (edit signature / retake photo)</button>
+    <div class="row">
+      <button id="reviewBack" class="ghost">Back</button>
+      <button id="openFull" class="ghost">Open PDF</button>
+    </div>
   </section>
 
   <!-- 4. Result -->
@@ -101,6 +103,7 @@
 </main>
 
 <script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/pdf.min.js"></script>
 <script src="config.js"></script>
 <script src="pdf.js"></script>
 <script src="app.js"></script>

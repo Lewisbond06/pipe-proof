@@ -166,9 +166,23 @@
     pending = { id: hash.slice(0, 12).toUpperCase(), hash, w: shot.w, h: shot.h, ...meta, photo: shot.dataUrl, signature, createdAt: Date.now() };
     if (reviewUrl) URL.revokeObjectURL(reviewUrl);
     reviewUrl = URL.createObjectURL(buildPdf(pending).output("blob"));
-    $("pdfFrame").src = reviewUrl;
     show("Review");
+    renderPreview(reviewUrl);
   };
+  // draw page 1 of the PDF onto a canvas so the whole page fits the screen with no scrolling
+  async function renderPreview(url) {
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "vendor/pdf.worker.min.js";
+      const data = await (await fetch(url)).arrayBuffer();
+      const page = await (await pdfjsLib.getDocument({ data }).promise).getPage(1);
+      const vp = page.getViewport({ scale: 2.2 });
+      const cv = $("pdfCanvas");
+      cv.width = vp.width; cv.height = vp.height;
+      await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+    } catch (e) {
+      window.open(url, "_blank"); // fall back to the phone's own PDF viewer
+    }
+  }
   $("openFull").onclick = () => window.open(reviewUrl, "_blank");
   $("reviewBack").onclick = () => show("Sign");
   $("confirmSave").onclick = async () => {
