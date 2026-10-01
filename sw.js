@@ -1,5 +1,5 @@
 // Cache the app shell so it opens on site with no signal.
-const CACHE = "pipeproof-v5";
+const CACHE = "pipeproof-v6";
 const SHELL = ["./", "index.html", "styles.css", "app.js", "pdf.js", "config.js", "icon.svg", "manifest.webmanifest", "vendor/jspdf.umd.min.js"];
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())));
 self.addEventListener("activate", e => e.waitUntil(
@@ -7,5 +7,5 @@ self.addEventListener("activate", e => e.waitUntil(
 ));
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET" || new URL(e.request.url).origin !== location.origin) return;
-  e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); return r; }).catch(() => caches.match(e.request)));
+  e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put(e.request, c)); return r; }).catch(() => caches.match(e.request, { ignoreSearch: true })));
 });
