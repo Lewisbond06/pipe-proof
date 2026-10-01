@@ -194,7 +194,7 @@
   };
 
   // ---- PDF ----
-  const buildPdf = r => window.PipePdf.build(r, CFG.company);
+  const buildPdf = r => window.PipePdf.build(r, CFG);
   const pdfBlob = async r => buildPdf(r).output("blob");
   const fileName = r => `pipe-test_plot-${r.plot}_${r.takenAt.slice(0, 10)}_${r.id}.pdf`.replace(/\s+/g, "-");
   function saveBlob(blob, name) {

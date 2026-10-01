@@ -10,7 +10,8 @@
   const dateStr = d => d.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
   const timeStr = d => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZoneName: "short" });
 
-  function build(r, company) {
+  function build(r, brand) {
+    const company = typeof brand === "string" ? brand : brand.company, logo = typeof brand === "string" ? null : brand.logo;
     const doc = new root.jspdf.jsPDF({ unit: "mm", format: "a4" });
     const when = new Date(r.takenAt);
     const fill = c => doc.setFillColor(...c), draw = c => doc.setDrawColor(...c), ink = c => doc.setTextColor(...c);
@@ -32,8 +33,14 @@
     // ---- header ----
     fill(C.navy); doc.rect(0, 0, W, 34, "F");
     fill(C.accent); doc.rect(0, 34, W, 1.4, "F");
-    ink(C.white); font("bold", 19); doc.text("PIPE PRESSURE TEST", M, 16);
-    font("normal", 9.5); ink([148, 163, 184]); doc.text("Test record", M, 23);
+    let tx = M;
+    if (logo) {
+      const lh = 26, lw = lh * logo.w / logo.h;
+      doc.addImage(logo.data, "JPEG", M, 4, lw, lh);
+      tx = M + lw + 7;
+    }
+    ink(C.white); font("bold", 19); doc.text("PIPE PRESSURE TEST", tx, 16);
+    font("normal", 9.5); ink([148, 163, 184]); doc.text("Test record", tx, 23);
     font("bold", 10); ink(C.white); doc.text(company, W - M, 13, { align: "right" });
     font("normal", 8.5); ink([148, 163, 184]);
     doc.text("Record " + r.id, W - M, 19.5, { align: "right" });
