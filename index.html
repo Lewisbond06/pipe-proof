@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>PipeProof</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <h1>PipeProof</h1>
+  <nav>
+    <button id="navNew" class="tab active">New test</button>
+    <button id="navHistory" class="tab">History</button>
+  </nav>
+</header>
+
+<main>
+  <!-- 1. Details -->
+  <section id="screenForm" class="screen active">
+    <form id="detailsForm" autocomplete="off">
+      <label>Site / development <input name="site" required placeholder="e.g. Oakfield Meadows"></label>
+      <label>Plot number <input name="plot" required placeholder="e.g. 42" inputmode="text"></label>
+      <label>Plumber name <input name="plumber" required placeholder="Your name"></label>
+      <div class="row">
+        <label>Pipe brand <select name="brand" required></select></label>
+        <label>Size <select name="size" required></select></label>
+      </div>
+      <label>Pipe material <select name="material" required></select></label>
+      <label>Test type <select name="testType" required></select></label>
+      <div class="row">
+        <label>Test pressure <select name="pressure" required></select></label>
+        <label>Duration <select name="duration" required></select></label>
+      </div>
+      <label>Result <select name="result" required></select></label>
+      <label>Notes (optional) <textarea name="notes" rows="2"></textarea></label>
+      <button class="primary" type="submit">Next: take photo</button>
+    </form>
+  </section>
+
+  <!-- 2. Camera -->
+  <section id="screenCamera" class="screen">
+    <div class="camwrap">
+      <video id="video" playsinline muted autoplay></video>
+      <div class="overlay" id="liveOverlay"></div>
+    </div>
+    <p id="camError" class="error" hidden></p>
+    <div class="gps" id="gpsStatus">Getting location…</div>
+    <div class="row">
+      <button id="camBack" class="ghost">Back</button>
+      <button id="shutter" class="primary" disabled>Take photo</button>
+    </div>
+  </section>
+
+  <!-- 3. Sign -->
+  <section id="screenSign" class="screen">
+    <img id="previewImg" alt="Stamped test photo">
+    <p class="hint">Sign below to confirm the test was carried out as stated.</p>
+    <canvas id="sigPad" width="600" height="220"></canvas>
+    <div class="row">
+      <button id="sigClear" class="ghost">Clear</button>
+      <button id="retake" class="ghost">Retake photo</button>
+    </div>
+    <button id="makeRecord" class="primary">Create test record</button>
+  </section>
+
+  <!-- 4. Result -->
+  <section id="screenResult" class="screen">
+    <div class="ok">Test record created</div>
+    <p class="mono" id="resultId"></p>
+    <img id="resultImg" alt="Stamped photo">
+    <button id="sharePdf" class="primary">Share / save PDF</button>
+    <button id="downloadPhoto" class="ghost">Save stamped photo</button>
+    <button id="another" class="ghost">New test</button>
+  </section>
+
+  <!-- 5. History -->
+  <section id="screenHistory" class="screen">
+    <div id="historyList"></div>
+  </section>
+</main>
+
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
