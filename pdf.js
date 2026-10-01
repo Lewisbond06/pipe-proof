@@ -125,7 +125,7 @@
     font("normal", 6.3); doc.text("SHA-256 " + r.hash, M, 287);
     font("normal", 6.3);
     doc.text("Time and location recorded by the device at the moment of capture. Any change to the photo or details alters the hash above.", M, 291);
-    font("bold", 7); doc.text("PipeProof", W - M, 283, { align: "right" });
+    font("bold", 7); doc.text(company, W - M, 283, { align: "right" });
     return doc;
   }
 

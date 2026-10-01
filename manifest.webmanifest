@@ -1,6 +1,6 @@
 {
-  "name": "PipeProof",
-  "short_name": "PipeProof",
+  "name": "H2O Tests",
+  "short_name": "H2O Tests",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0f172a",

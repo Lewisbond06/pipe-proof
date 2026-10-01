@@ -1,6 +1,7 @@
 (() => {
   const CFG = window.PIPEPROOF_CONFIG;
   const $ = id => document.getElementById(id);
+  $("brandName").textContent = CFG.company;
   const screens = ["Form", "Camera", "Sign", "Review", "Result", "History"];
 
   // ---- state ----
