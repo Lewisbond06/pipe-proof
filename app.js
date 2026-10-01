@@ -180,52 +180,7 @@
   };
 
   // ---- PDF ----
-  function buildPdf(r) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-    const W = 210, M = 15;
-    doc.setFillColor(15, 23, 42); doc.rect(0, 0, W, 24, "F");
-    doc.setTextColor(255); doc.setFontSize(17); doc.setFont("helvetica", "bold");
-    doc.text("PIPE TEST RECORD", M, 15);
-    doc.setFontSize(9); doc.setFont("helvetica", "normal");
-    doc.text(CFG.company, W - M, 11, { align: "right" });
-    doc.text("Record " + r.id, W - M, 17, { align: "right" });
-
-    doc.setTextColor(30);
-    const rows = [
-      ["Site", r.site], ["Plot", r.plot], ["Plumber", r.plumber],
-      ["Date / time", fmtTime(new Date(r.takenAt))],
-      ["Location", `${r.lat.toFixed(6)}, ${r.lon.toFixed(6)} (+/-${Math.round(r.acc)} m)`],
-      ["Address", r.address || "-"],
-      ["First test", `${r.pipe1} - ${r.bar1} bar - Confirmed: ${r.conf1}`],
-      ["Second test", r.hasSecond ? `${r.pipe2} - ${r.bar2} bar - Confirmed: ${r.conf2}` : "Not carried out"],
-      ["Notes", r.notes || "-"]
-    ];
-    let y = 34;
-    rows.forEach(([k, v]) => {
-      doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(100); doc.text(k.toUpperCase(), M, y);
-      doc.setFont("helvetica", "normal"); doc.setFontSize(11);
-      doc.setTextColor(30);
-      const wrapped = doc.splitTextToSize(String(v), W - M * 2 - 45);
-      doc.text(wrapped, M + 45, y);
-      y += Math.max(7, wrapped.length * 5 + 2);
-    });
-    // photo
-    const ratio = r.h / r.w;
-    let pw = W - M * 2, ph = pw * ratio;
-    const maxH = 297 - y - 48;
-    if (ph > maxH) { ph = maxH; pw = ph / ratio; }
-    doc.addImage(r.photo, "JPEG", M, y + 2, pw, ph);
-    y += ph + 8;
-    // signature
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(100); doc.text("BUILDER'S REPRESENTATIVE", M, y);
-    doc.addImage(r.signature, "PNG", M, y + 2, 55, 20);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(120);
-    doc.text(r.repName, M + 60, y + 14);
-    doc.text(`Integrity ID ${r.id} - SHA-256 ${r.hash}`.match(/.{1,100}/g), M, 290);
-    return doc;
-  }
-
+  const buildPdf = r => window.PipePdf.build(r, CFG.company);
   const pdfBlob = async r => buildPdf(r).output("blob");
   const fileName = r => `pipe-test_plot-${r.plot}_${r.takenAt.slice(0, 10)}_${r.id}.pdf`.replace(/\s+/g, "-");
   function saveBlob(blob, name) {
